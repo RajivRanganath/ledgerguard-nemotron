@@ -63,7 +63,7 @@ close one.
 ## Setup
 
 ```bash
-git clone https://github.com/RajivRanganath/ledgerguard.git && cd ledgerguard
+git clone https://github.com/RajivRanganath/ledgerguard-nemotron.git && cd ledgerguard-nemotron
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 cp .env.example .env              # then set NEBIUS_API_KEY in .env
 
