@@ -112,7 +112,7 @@ and the only way to tell is to check it against the thing itself.
 
 ## Data
 
-- **Synthetic settlement data.** No real Razorpay data of any kind. Amounts,
+- **Synthetic settlement data.** No real payment provider data of any kind. Amounts,
   timing, references and fault rates are invented and internally consistent, not
   drawn from production distributions.
 - **One settlement per payment.** Real settlements are batched per merchant per
@@ -188,11 +188,8 @@ ceiling.
 
 ## Integration
 
-- **Razorpay Test Mode integration was declined, not attempted and abandoned.**
-  Two reasons, both true: no Razorpay Test Mode credentials were available, and
-  it was a P1 item gated on P0 being stable that stayed behind more valuable
-  work. Track 04 asks only for a synthetic batch of 50+ records, which is
-  satisfied, and it was a P1 item I chose to cut. No Razorpay
+- **No payment provider integration.** LedgerGuard reads a synthetic batch of
+  orders, payments, refunds, settlements and bank entries. No payment provider
   API behaviour, endpoint or response shape is claimed or simulated anywhere in
   this repository.
 - **No production data, no live API calls, no real financial transfers of any
@@ -207,10 +204,10 @@ chosen for demo reliability over stack conformance.
 
 ## Secrets
 
-One class of secret: free-tier provider API keys (`GROQ_API_KEY`,
-`GEMINI_API_KEY`, `NVIDIA_API_KEY`, `OMNIROUTE_API_KEY`), each read from the
-environment and used for nothing but an investigator call. No paid API key is
-used anywhere. There are no Razorpay
+One class of secret: provider API keys (`NEBIUS_API_KEY` for Token Factory,
+plus the optional free-tier `GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`,
+`OMNIROUTE_API_KEY`), each read from the environment and used for nothing but an
+investigator call. There are no payment provider
 credentials, no database password and no payment-rail access, because no real
 money is ever moved. `.env` is gitignored, `.env.example` carries placeholders
 only. No key, token or credential is committed anywhere in this repository or

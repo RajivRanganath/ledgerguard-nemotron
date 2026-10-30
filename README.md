@@ -1,99 +1,97 @@
 # LedgerGuard
 
-**A self verifying AI finance controller.** Razorpay AI Buildathon, Track 04.
+**Payments reconciliation where NVIDIA Nemotron investigates the hard cases and
+an Evidence Gate decides whether its answer is proved.** Runs on Nebius Token
+Factory.
 
-The workflow is settlement reconciliation: inspect the source records, verify an
-ambiguous refund, and export the exceptions that still need a human.
-
-I built LedgerGuard to answer a question that a reconciliation chatbot does not
-answer: an LLM can generate a plausible explanation for a financial discrepancy
-in about two seconds — but how do you know whether that explanation is
-*financially true*?
+An LLM can write a plausible explanation for a payments discrepancy in about two
+seconds. The question LedgerGuard answers is the next one: how do you know that
+explanation is *financially true*?
 
 **The core claim: LLM reasoning is not financial truth. Financial truth is
-deterministic accounting state plus verified evidence. The AI may propose, the
-financial system must prove.**
+deterministic accounting state plus verified evidence. The model may propose;
+the financial system must prove.**
 
-## Quick start
+## How Nemotron is used
+
+1. A deterministic engine and an independent Shadow Ledger resolve everything
+   that can be proved with identifiers and arithmetic. On the frozen holdout
+   that is 54 of 85 cases, with no model involved.
+2. Only the cases they cannot prove go to **NVIDIA Nemotron on Nebius Token
+   Factory**. Nemotron gets the records, the expected ledger value, the
+   discrepancy, the permitted hypothesis types and candidate related records,
+   and returns a structured JSON hypothesis plus the record ids that would prove
+   it.
+3. The **Evidence Gate** re-checks every claim against the records itself: does
+   the cited refund exist, does it belong to this payment, does applying it
+   restore the ledger exactly. If not, the case goes to a human instead of being
+   closed. Nemotron never does arithmetic and has no tool that closes a case.
+
+Token Factory is reached through its OpenAI-compatible chat completions API. The
+integration is the `nebius` preset in
+[`ledgerguard/ai/openai_compatible.py`](ledgerguard/ai/openai_compatible.py):
+base URL, `NEBIUS_API_KEY`, and an ordered list of Nemotron models
+(`nvidia/Nemotron-3_5-Lightning`, then `nvidia/nemotron-3-super-120b-a12b`). If
+one model fails or returns an unusable answer the provider moves to the next,
+and the chain never leaves Nemotron. `LEDGERGUARD_MODEL` pins a single model.
+
+## Results on Nemotron
+
+Frozen holdout of 85 payment lifecycles, from
+[`nemotron_comparison.md`](ledgerguard/evaluation/outputs/nemotron_comparison.md):
+
+| | Rules only | With Nemotron |
+|---|---|---|
+| Accuracy | 89.4% | 94.1% |
+| Cases auto resolved | 12 | 16 (all correct) |
+| Unlinked partial refunds (F3) closed with proof | 0 of 9 | 4 of 9 |
+| Wrong-linkage cases (F6) the model asked to close | n/a | 0 of 6 |
+| Cases closed wrongly | 0 | 0 (INR 0.00) |
+| Invalid or unavailable responses | n/a | 0 and 0 |
+| Investigation latency, p50 / p95 | n/a | 2.3 s / 3.3 s |
+
+The model that answered was `nvidia/nemotron-3-super-120b-a12b`. Lightning, the
+first choice, returned empty answers in this setup, so every investigation fell
+back to Super.
+
+The F6 row is the safety test: a refund whose amount exactly matches the
+shortfall but belongs to a different payment. Across the five investigators
+measured in September on the same holdout, 25 of 30 such attempts would have been
+closed with no gate and 0 were closed with it. Nemotron 3 Super never asked to
+close one.
+
+## Setup
 
 ```bash
 git clone https://github.com/RajivRanganath/ledgerguard.git && cd ledgerguard
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-./run_demo.sh          # tests, then benchmark, then http://127.0.0.1:8137
+cp .env.example .env              # then set NEBIUS_API_KEY in .env
+
+./run_nemotron_eval.sh                    # tests, then the holdout comparison on Nemotron
+LEDGERGUARD_PROVIDER=nebius ./run_demo.sh # dashboard at http://127.0.0.1:8137, Nemotron investigating
 ```
 
-**No API key is needed.** Without one the AI investigation step degrades to an
-offline stand-in and says so on the page; the deterministic engine, Shadow
-Ledger, Evidence Gate, benchmark and dashboard all run unchanged.
+`run_nemotron_eval.sh` writes
+`ledgerguard/evaluation/outputs/nemotron_comparison.md` and `.json`, and exits
+with an error if any investigation never reached Nemotron, so a failed run
+cannot be mistaken for a result.
 
-## Nebius x NVIDIA hackathon update
+**No key?** `./run_demo.sh` still runs. The investigation step falls back to an
+offline stand-in and says so on the page; the engine, Shadow Ledger, Evidence
+Gate, benchmark and dashboard run unchanged.
 
-**What existed before.** I built LedgerGuard in September 2026 for the Razorpay
-AI Buildathon, Track 04. The engine, Shadow Ledger, Evidence Gate, benchmark and
-dashboard described in the rest of this README come from that build, and every
-number outside this section was measured then, on free tier models.
+## Project history
 
-**What I changed for this hackathon.**
-
-- A `nebius` provider that sends investigations to NVIDIA Nemotron on Nebius
-  Token Factory. The default model is `nvidia/Nemotron-3_5-Lightning`, with
-  `nvidia/nemotron-3-super-120b-a12b` as a second route. In the recorded run
-  Lightning returned empty answers, so Super answered every investigation. Set
-  `LEDGERGUARD_MODEL` to use a different one.
-- When `NEBIUS_API_KEY` is set, Nebius comes first in the automatic provider
-  order, so the dashboard and benchmark use Nemotron by default.
-- The response parser ignores reasoning text that a model writes before
-  `</think>`, so a thinking model's answer still parses.
-- `run_nemotron_eval.sh` runs the frozen holdout comparison on Nemotron and
-  writes `ledgerguard/evaluation/outputs/nemotron_comparison.md` and `.json`.
-- Offline tests for the new provider (`ledgerguard/tests/test_nebius.py`) and an
-  MIT license.
-
-The deterministic engine, Shadow Ledger and Evidence Gate did not change.
-Nemotron proposes an explanation; the gate still decides whether it holds.
-
-**Run it on Nemotron.**
-
-```bash
-export NEBIUS_API_KEY=your-key            # or put it in .env
-./run_nemotron_eval.sh                    # tests, then the holdout comparison
-LEDGERGUARD_PROVIDER=nebius ./run_demo.sh # dashboard with Nemotron investigating
-```
-
-**Results on Nemotron**, from
-[`nemotron_comparison.md`](ledgerguard/evaluation/outputs/nemotron_comparison.md):
-
-| | Result |
-|---|---|
-| Model that answered | `nebius:nvidia/nemotron-3-super-120b-a12b` |
-| Holdout cases resolved with no AI at all (deterministic, unchanged) | 54 of 85 |
-| Accuracy on the frozen holdout | 94.1% |
-| Unlinked partial refunds (F3) closed after passing the gate | 4 of 9 |
-| Wrong-linkage (F6) cases Nemotron asked to close, which is what a system with no gate would have closed | 0 of 6 |
-| Cases closed wrongly with the gate in place | 0 (INR 0.00) |
-| Invalid or unavailable responses | 0 invalid, 0 unavailable |
-
-For reference, across the five investigators measured in September, 25 of 30
-wrong-linkage attempts would have been closed with no gate, and 0 were closed
-with it.
-
----
-
-## Where to verify each published requirement
-
-Track 04, AI Finance Controller, checked against the official Buildathon page.
-The official description does not mandate multiple agents, a particular frontend
-framework, or a Razorpay payment API integration. Synthetic settlement
-reconciliation is the chosen workflow, and no payment is ever initiated.
-
-| Published requirement | Where to verify it |
-|---|---|
-| One finance-operations loop | Dashboard: records → investigation → checks → disposition → exception report |
-| At least 50 synthetic records | 320 generated lifecycles; 85 held out and frozen for the benchmark |
-| Match rate | `evaluation/outputs/benchmark.json` — `baseline.match_rate`, `hybrid.match_rate` |
-| Throughput and measured accuracy | Same artifact; wall-clock figures include provider latency |
-| Exceptions that could not be resolved | Dashboard exception queue, and `evaluation/outputs/unresolved_exceptions.csv` |
-| Architecture | [`docs/architecture.md`](docs/architecture.md) |
+I first built LedgerGuard in September 2026 as a solo project. The engine,
+Shadow Ledger, Evidence Gate, synthetic data, benchmark and dashboard come from
+that build, measured with free-tier model hosts (Gemini, Groq, Mistral and
+NVIDIA NIM). For the Nebius x NVIDIA Global AI Hackathon I added the Token Factory
+provider, Nemotron support (including parsing answers that follow a `</think>`
+block), the Nemotron evaluation, its tests and the MIT license. The engine and
+gate did not change, which is the point: the model is swappable and the safety
+property does not depend on which model answers. The sections below describe
+the system as a whole; numbers in "Recorded benchmark result" come from the
+September runs.
 
 ---
 
@@ -556,15 +554,13 @@ actually answered.
 
 ## Secrets
 
-Provider API keys only — `GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`,
-`OMNIROUTE_API_KEY` — each read from the environment, each used for nothing but
-an investigator call, and all four free tier. No other secret exists: there are no
-Razorpay credentials, no database password, and no payment rail is touched.
+Provider API keys only (`NEBIUS_API_KEY`, plus the optional free-tier
+`GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `OMNIROUTE_API_KEY`), each
+read from the environment and used for nothing but an investigator call. No
+other secret exists: there are no payment provider credentials, no database
+password, and no payment rail is touched.
 `.env` is gitignored; `.env.example` carries placeholders. No key, token or
 credential is committed.
-
-The Nebius x NVIDIA update adds one more key, `NEBIUS_API_KEY`, read and used
-the same way. Token Factory is a paid host, not a free tier.
 
 ## Repository
 
@@ -584,8 +580,10 @@ ledgerguard/
   tests/           test_p0_core.py  test_p1_extended.py  test_p1_compound.py
                    test_p2_evaluation.py  test_fallback.py
                    test_dashboard_startup.py  test_evidence_download.py
+                   test_nebius.py
                    rehearsal_check.py
   pipeline.py      qa.py
+run_demo.sh  run_nemotron_eval.sh
 docs/              architecture.md  evaluation.md  limitations.md  analyses.md
                    model_comparison.md
 ```
