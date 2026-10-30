@@ -350,12 +350,12 @@ function stat(k, v, cls, note) {
 // End-to-end wall clock for this run. It is dominated by whichever side is
 // slower, and those differ by four orders of magnitude: with no model the
 // deterministic engine runs at tens of thousands of cases a second, and with a
-// live investigator the number is sequential model calls on a free tier.
+// live investigator the number is sequential calls to a hosted model.
 // Neither is a production throughput figure, so the tile says which one it is
 // rather than leaving a bare number to be misread.
 function throughputNote(s) {
   return s.overview.investigations && s.provider_is_model
-    ? `${s.overview.investigations} sequential model calls, free tier`
+    ? `${s.overview.investigations} sequential model calls, not batched`
     : 'deterministic path; no model calls in this run';
 }
 
