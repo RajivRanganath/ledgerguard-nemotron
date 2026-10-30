@@ -1,0 +1,44 @@
+{
+  "baseline": {
+    "provider": "rules only (no investigator)",
+    "accuracy": 0.8941,
+    "auto_resolved": 12,
+    "correctly_resolved": 12,
+    "f3_resolved": 0,
+    "f3_total": 9,
+    "f6_total": 6,
+    "investigator_wanted_to_close_f6": 0,
+    "gate_rejected": 0,
+    "gate_unverified": 15,
+    "false_auto_resolutions": 0,
+    "false_auto_resolved_value_inr": "0.00",
+    "invalid_responses": 0,
+    "unavailable": 15,
+    "inadmissible_ids_dropped": 0,
+    "latency_p50_ms": 0.0,
+    "latency_p95_ms": 0.0,
+    "wall_seconds": 0.003
+  },
+  "providers": [
+    {
+      "provider": "nebius:nvidia/nemotron-3-super-120b-a12b",
+      "accuracy": 0.9412,
+      "auto_resolved": 16,
+      "correctly_resolved": 16,
+      "f3_resolved": 4,
+      "f3_total": 9,
+      "f6_total": 6,
+      "investigator_wanted_to_close_f6": 0,
+      "gate_rejected": 1,
+      "gate_unverified": 10,
+      "false_auto_resolutions": 0,
+      "false_auto_resolved_value_inr": "0.00",
+      "invalid_responses": 0,
+      "unavailable": 0,
+      "inadmissible_ids_dropped": 2,
+      "latency_p50_ms": 2299.3,
+      "latency_p95_ms": 3298.48,
+      "wall_seconds": 45.582
+    }
+  ]
+}

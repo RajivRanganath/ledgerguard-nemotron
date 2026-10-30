@@ -64,13 +64,13 @@ LEDGERGUARD_PROVIDER=nebius ./run_demo.sh # dashboard with Nemotron investigatin
 
 | | Result |
 |---|---|
-| Model that answered | `[RESULT PENDING: provider]` |
+| Model that answered | `nebius:nvidia/nemotron-3-super-120b-a12b` |
 | Holdout cases resolved with no AI at all (deterministic, unchanged) | 54 of 85 |
-| Accuracy on the frozen holdout | `[RESULT PENDING: accuracy]` |
-| Unlinked partial refunds (F3) closed after passing the gate | `[RESULT PENDING: f3_resolved of f3_total]` |
-| Wrong-linkage (F6) cases Nemotron asked to close, which is what a system with no gate would have closed | `[RESULT PENDING: investigator_wanted_to_close_f6 of f6_total]` |
-| Cases closed wrongly with the gate in place | `[RESULT PENDING: false_auto_resolutions]` |
-| Invalid or unavailable responses | `[RESULT PENDING: invalid_responses, unavailable]` |
+| Accuracy on the frozen holdout | 94.1% |
+| Unlinked partial refunds (F3) closed after passing the gate | 4 of 9 |
+| Wrong-linkage (F6) cases Nemotron asked to close, which is what a system with no gate would have closed | 0 of 6 |
+| Cases closed wrongly with the gate in place | 0 (INR 0.00) |
+| Invalid or unavailable responses | 0 invalid, 0 unavailable |
 
 For reference, across the five investigators measured in September, 25 of 30
 wrong-linkage attempts would have been closed with no gate, and 0 were closed
