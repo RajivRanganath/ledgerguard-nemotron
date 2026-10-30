@@ -87,8 +87,13 @@ def _retry_delay(response: httpx.Response, attempt: int) -> float:
 
 
 def _strip_fences(text: str) -> str:
-    """Some models wrap JSON in markdown fences even when told not to."""
-    text = (text or "").strip()
+    """Some models wrap JSON in markdown fences even when told not to.
+
+    Reasoning models (Nemotron among them) may also put their thinking in the
+    content ahead of the answer, closed by ``</think>``. Only what follows the
+    last closing tag is the answer.
+    """
+    text = (text or "").rsplit("</think>", 1)[-1].strip()
     if text.startswith("```"):
         text = text.split("\n", 1)[-1] if "\n" in text else text
         if text.endswith("```"):
@@ -215,6 +220,24 @@ PRESETS: dict[str, dict] = {
             "mistral/mistral-small-latest",
         ],
         "json_schema": True,
+    },
+    "nebius": {
+        # Nebius Token Factory, serving NVIDIA's open Nemotron weights. Not
+        # probed yet: written from the Token Factory docs (quickstart, model
+        # deprecation notices) on 2026-10-30, before a key was available.
+        "base_url": "https://api.tokenfactory.nebius.com/v1",
+        "env": "NEBIUS_API_KEY",
+        # Both routes are Nemotron, so rotation never leaves NVIDIA's models.
+        # nemotron-3-super-120b-a12b is scheduled for removal on 2026-11-09
+        # and Nemotron-3_5-Lightning is its named replacement.
+        "models": [
+            "nvidia/Nemotron-3_5-Lightning",
+            "nvidia/nemotron-3-super-120b-a12b",
+        ],
+        # The docs contradict themselves on strict json_schema (the guide shows
+        # it, the API reference says only json_object). json_object is the one
+        # both pages agree on, and the schema then goes in the prompt.
+        "json_schema": False,
     },
     "openai_compatible": {
         "base_url": None,          # from LEDGERGUARD_BASE_URL

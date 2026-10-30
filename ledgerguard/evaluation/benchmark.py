@@ -246,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--provider",
         default=None,
-        help="auto | fallback | groq | gemini | nvidia | omniroute | "
+        help="auto | fallback | nebius | groq | gemini | nvidia | omniroute | "
         "anthropic | cerebras | openai_compatible | stub | none",
     )
     args = parser.parse_args(argv)
@@ -340,8 +340,8 @@ def main(argv: list[str] | None = None) -> int:
     if hyb_metrics.provider == "heuristic_stub":
         print(
             "\nNOTE: the hybrid run used the offline heuristic stub, not a model. "
-            "Configure a provider key (GROQ_API_KEY, GEMINI_API_KEY, NVIDIA_API_KEY "
-            "or OMNIROUTE_API_KEY) and rerun to measure against a real investigator."
+            "Configure a provider key (NEBIUS_API_KEY, GROQ_API_KEY, GEMINI_API_KEY, "
+            "NVIDIA_API_KEY or OMNIROUTE_API_KEY) and rerun to measure against a real investigator."
         )
     return 0
 

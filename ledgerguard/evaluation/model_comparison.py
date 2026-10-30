@@ -138,6 +138,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--providers", default="groq,gemini,stub")
     parser.add_argument("--seed", type=int, default=20260905)
     parser.add_argument("--count", type=int, default=320)
+    parser.add_argument(
+        "--out", default="model_comparison",
+        help="artifact name stem; a new stem keeps the published comparison intact",
+    )
     args = parser.parse_args(argv)
 
     full = build_dataset(seed=args.seed, count=args.count)
@@ -169,8 +173,8 @@ def main(argv: list[str] | None = None) -> int:
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     md = render(rows, base_row)
-    (OUTPUT_DIR / "model_comparison.md").write_text(md)
-    (OUTPUT_DIR / "model_comparison.json").write_text(
+    (OUTPUT_DIR / f"{args.out}.md").write_text(md)
+    (OUTPUT_DIR / f"{args.out}.json").write_text(
         json.dumps({"baseline": base_row, "providers": rows}, indent=2) + "\n"
     )
     print("\n" + md)

@@ -222,7 +222,10 @@ class UnavailableProvider:
 
 #: Preference order for the automatic fallback chain, in the order requested.
 #:
-#: Groq first: fastest of the reliable ones (~1.4s) and it does not cache.
+#: Nebius first, when NEBIUS_API_KEY is set: the Nebius x NVIDIA hackathon
+#:   entry runs on NVIDIA Nemotron via Token Factory. Unlike the four below it
+#:   is not a free tier. With no key it is skipped and the order is unchanged.
+#: Groq next: fastest of the reliable ones (~1.4s) and it does not cache.
 #: Gemini second: fast when its free-tier quota is intact.
 #: NVIDIA third: working since the key was replaced. The catalogue it advertises
 #:   is much larger than what an account may invoke, so the routes are the three
@@ -230,11 +233,12 @@ class UnavailableProvider:
 #: OmniRoute last: reaches Mistral, but is the slowest by a wide margin
 #:   (p50 ~53s uncached) and caches temperature-0 responses.
 #:
-#: All four are free tiers. No paid API is used anywhere in this project.
+#: Those four are free tiers, and every number published before the Nebius
+#: update was produced on them alone.
 #: Anthropic is implemented (it is the reference implementation of the provider
 #: interface) but never called; Cerebras is excluded outright -- its key returns
 #: HTTP 402. Neither is in the automatic order.
-AUTO_ORDER = ["groq", "gemini", "nvidia", "omniroute"]
+AUTO_ORDER = ["nebius", "groq", "gemini", "nvidia", "omniroute"]
 
 
 def _build(kind: str) -> InvestigatorProvider:
@@ -314,7 +318,7 @@ def get_provider(kind: str | None = None) -> InvestigatorProvider:
     """Select an investigator provider.
 
     ``kind`` (or LEDGERGUARD_PROVIDER) may be:
-      groq | gemini | nvidia | omniroute | openai_compatible
+      nebius | groq | gemini | nvidia | omniroute | openai_compatible
                           -- one specific provider (anthropic and cerebras are
                              still constructible but are not used here)
       fallback            -- chain every configured provider, failing over

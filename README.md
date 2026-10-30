@@ -26,6 +26,56 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 offline stand-in and says so on the page; the deterministic engine, Shadow
 Ledger, Evidence Gate, benchmark and dashboard all run unchanged.
 
+## Nebius x NVIDIA hackathon update
+
+**What existed before.** I built LedgerGuard in September 2026 for the Razorpay
+AI Buildathon, Track 04. The engine, Shadow Ledger, Evidence Gate, benchmark and
+dashboard described in the rest of this README come from that build, and every
+number outside this section was measured then, on free tier models.
+
+**What I changed for this hackathon.**
+
+- A `nebius` provider that sends investigations to NVIDIA Nemotron on Nebius
+  Token Factory. The default model is `nvidia/Nemotron-3_5-Lightning`, with
+  `nvidia/nemotron-3-super-120b-a12b` as a second route. Set `LEDGERGUARD_MODEL`
+  to use a different one.
+- When `NEBIUS_API_KEY` is set, Nebius comes first in the automatic provider
+  order, so the dashboard and benchmark use Nemotron by default.
+- The response parser ignores reasoning text that a model writes before
+  `</think>`, so a thinking model's answer still parses.
+- `run_nemotron_eval.sh` runs the frozen holdout comparison on Nemotron and
+  writes `ledgerguard/evaluation/outputs/nemotron_comparison.md` and `.json`.
+- Offline tests for the new provider (`ledgerguard/tests/test_nebius.py`) and an
+  MIT license.
+
+The deterministic engine, Shadow Ledger and Evidence Gate did not change.
+Nemotron proposes an explanation; the gate still decides whether it holds.
+
+**Run it on Nemotron.**
+
+```bash
+export NEBIUS_API_KEY=your-key            # or put it in .env
+./run_nemotron_eval.sh                    # tests, then the holdout comparison
+LEDGERGUARD_PROVIDER=nebius ./run_demo.sh # dashboard with Nemotron investigating
+```
+
+**Results on Nemotron**, from
+[`nemotron_comparison.md`](ledgerguard/evaluation/outputs/nemotron_comparison.md):
+
+| | Result |
+|---|---|
+| Model that answered | `[RESULT PENDING: provider]` |
+| Holdout cases resolved with no AI at all (deterministic, unchanged) | 54 of 85 |
+| Accuracy on the frozen holdout | `[RESULT PENDING: accuracy]` |
+| Unlinked partial refunds (F3) closed after passing the gate | `[RESULT PENDING: f3_resolved of f3_total]` |
+| Wrong-linkage (F6) cases Nemotron asked to close, which is what a system with no gate would have closed | `[RESULT PENDING: investigator_wanted_to_close_f6 of f6_total]` |
+| Cases closed wrongly with the gate in place | `[RESULT PENDING: false_auto_resolutions]` |
+| Invalid or unavailable responses | `[RESULT PENDING: invalid_responses, unavailable]` |
+
+For reference, across the five investigators measured in September, 25 of 30
+wrong-linkage attempts would have been closed with no gate, and 0 were closed
+with it.
+
 ---
 
 ## Where to verify each published requirement
@@ -512,6 +562,9 @@ Razorpay credentials, no database password, and no payment rail is touched.
 `.env` is gitignored; `.env.example` carries placeholders. No key, token or
 credential is committed.
 
+The Nebius x NVIDIA update adds one more key, `NEBIUS_API_KEY`, read and used
+the same way. Token Factory is a paid host, not a free tier.
+
 ## Repository
 
 ```
@@ -540,6 +593,10 @@ docs/              architecture.md  evaluation.md  limitations.md  analyses.md
 the pieces fit; [`docs/evaluation.md`](docs/evaluation.md) is how every number
 was produced; [`docs/limitations.md`](docs/limitations.md) is what this does not
 establish, stated plainly.
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
 
 ---
 
