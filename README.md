@@ -292,28 +292,31 @@ python3 -m venv .venv
 cp .env.example .env      # optional; the system runs without a key
 ```
 
-One free API key is enough, and the system also runs with none at all — the
-investigation step degrades to abstention and everything else is unchanged.
-The automatic chain is
-`groq` → `gemini` → `nvidia` → `omniroute` → offline stub:
+`NEBIUS_API_KEY` runs the investigator on NVIDIA Nemotron via Nebius Token
+Factory. The system also runs with no key at all: the investigation step
+degrades to abstention and everything else is unchanged. The automatic chain is
+`nebius` → `groq` → `gemini` → `nvidia` → `omniroute` → offline stub, using
+whichever keys are set:
 
 | Env var | Provider | Default model | In the auto chain |
 |---|---|---|---|
-| `GROQ_API_KEY` | OpenAI-compatible | `openai/gpt-oss-120b` | 1st |
-| `GEMINI_API_KEY` | `generateContent` | `gemini-2.5-flash` | 2nd |
-| `NVIDIA_API_KEY` | OpenAI-compatible | `openai/gpt-oss-120b` | 3rd |
-| `OMNIROUTE_API_KEY` | local router on `:20128` | `mistral-large-latest` | 4th |
+| `NEBIUS_API_KEY` | Nebius Token Factory, OpenAI-compatible | `nvidia/Nemotron-3_5-Lightning`, then `nvidia/nemotron-3-super-120b-a12b` | 1st |
+| `GROQ_API_KEY` | OpenAI-compatible | `openai/gpt-oss-120b` | 2nd |
+| `GEMINI_API_KEY` | `generateContent` | `gemini-2.5-flash` | 3rd |
+| `NVIDIA_API_KEY` | OpenAI-compatible | `openai/gpt-oss-120b` | 4th |
+| `OMNIROUTE_API_KEY` | local router on `:20128` | `mistral-large-latest` | 5th |
 
 `OMNIROUTE_API_KEY` drives a local [OmniRoute](https://www.npmjs.com/package/omniroute)
 router, which fronts many upstreams (OpenRouter, OpenCode, Mistral, …) behind one
 endpoint under its own separate credentials — which is why it stays in the chain
 even when the direct keys above are exhausted.
 
-**All four are free tiers, and that is deliberate.** No paid API key is used
-anywhere in this repository, and none is needed to reproduce any number in it.
-The claim being made is that the Evidence Gate holds regardless of how strong the
+**The four September providers are free tiers, and that was deliberate.** The
+claim being made is that the Evidence Gate holds regardless of how strong the
 investigator is, which four ordinary free models support better than one
-expensive one. Any other OpenAI-compatible host works via
+expensive one. Token Factory is a paid host; the Nemotron run in this repository
+was covered by hackathon credits, and every September number reproduces with no
+paid key. Any other OpenAI-compatible host works via
 `LEDGERGUARD_PROVIDER=openai_compatible` plus `LEDGERGUARD_BASE_URL`,
 `LEDGERGUARD_API_KEY` and `LEDGERGUARD_MODEL`.
 
@@ -323,7 +326,7 @@ provider it rotates between model routes. Free tiers die mid-run constantly, and
 neither failure should turn a resolvable case into an abstention:
 
 ```
-fallback(groq -> gemini -> nvidia -> omniroute)        # 4 providers, 13 routes
+fallback(nebius -> groq -> gemini -> nvidia -> omniroute)   # nebius only when its key is set
 ```
 
 OmniRoute is deliberately last and is the deepest link: it fronts Mistral,
