@@ -37,8 +37,9 @@ number outside this section was measured then, on free tier models.
 
 - A `nebius` provider that sends investigations to NVIDIA Nemotron on Nebius
   Token Factory. The default model is `nvidia/Nemotron-3_5-Lightning`, with
-  `nvidia/nemotron-3-super-120b-a12b` as a second route. Set `LEDGERGUARD_MODEL`
-  to use a different one.
+  `nvidia/nemotron-3-super-120b-a12b` as a second route. In the recorded run
+  Lightning returned empty answers, so Super answered every investigation. Set
+  `LEDGERGUARD_MODEL` to use a different one.
 - When `NEBIUS_API_KEY` is set, Nebius comes first in the automatic provider
   order, so the dashboard and benchmark use Nemotron by default.
 - The response parser ignores reasoning text that a model writes before
